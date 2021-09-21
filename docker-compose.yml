@@ -1,0 +1,70 @@
+version: '3.7'
+networks:
+  default:
+    name: project-network
+
+services:
+  proxy:
+    image: traefik:v2.4
+    container_name: proxy
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - mariadb.local:host-gateway
+      - host.docker.internal:host-gateway
+      - postgresql.local:host-gateway
+      - mongo.local:host-gateway
+      - redis.local:host-gateway
+
+  mariadb:
+    image: mariadb:10.5.8
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - ".data/mariadb:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MARIADB_DATABASE}
+      MYSQL_USER: ${MARIADB_USER}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+
+  postgres:
+    image: postgres:11.1
+    volumes:
+      - ".data/postgresql:/var/lib/postgresql/data"
+    ports:
+      - "${POSTGRESQL_DB_PORT}:${POSTGRESQL_DB_PORT}"
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_DB_USER}
+      POSTGRES_PASSWORD: ${POSTGRESQL_DB_PASSWORD}
+    depends_on:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.services.postgresql.loadbalancer.server.port=${POSTGRESQL_DB_PORT}"
+
+  mongo:
+    image: mongo:4.0
+    volumes:
+      - ".data/mongodb:/data/db"
+    ports:
+      - ${MONGO_PORT}:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+
+  redis:
+    image: redis:latest-alpine
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:REDIS_PASSWORD
+      - "$.data/redis:/data"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.services.redis.loadbalancer.server.port=${REDIS_PORT}"
