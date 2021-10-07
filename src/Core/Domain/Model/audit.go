@@ -5,7 +5,7 @@ import (
 )
 
 type Audit struct {
-	Deleted       bool			`bson:"deleted"`
+	Deleted       bool			`bson:"deleted" pg:",soft_delete"`
 	CreatedAt     interface{}   `bson:"created_at"`
 	UserCreated   interface{}	`bson:"user_created"`
 	UpdatedAt     interface{}   `bson:"updated_at"`

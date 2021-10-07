@@ -56,15 +56,3 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-
-  redis:
-    image: redis:latest-alpine
-    ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
-    volumes:REDIS_PASSWORD
-      - "$.data/redis:/data"
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.tcp.services.redis.loadbalancer.server.port=${REDIS_PORT}"

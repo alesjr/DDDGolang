@@ -24,11 +24,12 @@ func NewCreateUser(ur _usersDomainRepository.UsersRepositoryInterface) _coreInfr
 
 func (c createUser) Handle(structRequest interface{}) (_coreInfrastructureUseCase.UseCaseResponseInterface, error){
 	u := structRequest.(_usersDomainModel.Users)
+	_, err := c.ur.AddUser(u)
 	return &userResponse{
 		u,
 		201,
 		"user_create_with_success",
-	}, nil
+	}, err
 }
 
 func (u userResponse) GetData() interface{} {

@@ -2,10 +2,9 @@ package core_infrastructure_service
 
 import (
 	"context"
-	_ "github.com/jackc/pgx/v4"
-	"log"
 	_coreDomainModel "ddd_golang/src/Core/Domain/Model"
 	_coreDomainService "ddd_golang/src/Core/Domain/Service"
+	"log"
 	"time"
 )
 

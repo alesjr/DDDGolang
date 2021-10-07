@@ -2,12 +2,9 @@ package core_infrastructure_service
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"log"
-
-	_ "github.com/jackc/pgx/v4/stdlib"
 	_coreDomainService "ddd_golang/src/Core/Domain/Service"
+	"github.com/go-pg/pg/v10"
+	"log"
 )
 
 type postgresDatabaseAdapter struct {
@@ -17,7 +14,7 @@ type postgresDatabaseAdapter struct {
 	port     string
 	dbName   string
 	context  context.Context
-	db   *sql.DB
+	db   *pg.DB
 }
 
 func NewPostgresDatabaseAdapter(u string, p string, h string, po string, dn string, ctx context.Context) _coreDomainService.DatabaseAdapterInterface {
@@ -32,14 +29,6 @@ func NewPostgresDatabaseAdapter(u string, p string, h string, po string, dn stri
 	}
 }
 
-func (p *postgresDatabaseAdapter) GetDSN() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", p.username, p.password, p.host, p.port, p.dbName)
-}
-
-func (p *postgresDatabaseAdapter) GetDriveName() string {
-	return "pgx"
-}
-
 func (p *postgresDatabaseAdapter) GetDatabase() interface{} {
 	p.conn()
 	return p.db
@@ -51,14 +40,16 @@ func (p *postgresDatabaseAdapter) GetContext() context.Context {
 
 func (p *postgresDatabaseAdapter) conn() {
 	if p.db == nil {
-		cli, err := sql.Open(p.GetDriveName(), p.GetDSN())
-		if err != nil {
-			log.Fatalln(_coreDomainService.ErrConnectionDB, p.GetDriveName(), err)
-		}
+		cli := pg.Connect(&pg.Options{
+			Addr: p.host+":"+p.port,
+			User: p.username,
+			Password: p.password,
+			Database: p.dbName,
+		})
 		p.db = cli
 	}
-	err := p.db.Ping()
+	err := p.db.Ping(p.GetContext())
 	if err != nil {
-		log.Fatalln(_coreDomainService.ErrConnectionDB, p.GetDriveName(), err)
+		log.Fatalln(_coreDomainService.ErrConnectionDB, "pgx", err)
 	}
 }

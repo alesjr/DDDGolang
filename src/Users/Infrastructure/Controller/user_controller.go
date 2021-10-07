@@ -1,44 +1,40 @@
 package user_controller
 
 import (
-	"database/sql"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	_coreDomainService "ddd_golang/src/Core/Domain/Service"
+	_configCore "ddd_golang/src/Core/Infrastructure/Config"
 	_coreInfrastructureHelper "ddd_golang/src/Core/Infrastructure/Helper"
 	_usersUseCaseCreateUser "ddd_golang/src/Users/Application/UseCase/CreateUser"
 	_usersDomainModel "ddd_golang/src/Users/Domain/Model"
 	_usersInfrastructureRepository "ddd_golang/src/Users/Infrastructure/Repository"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
-type controllerUser struct {
-	r *gin.Engine
-	db *sql.DB
+type userController struct {
+	config *_configCore.Config
 }
 
-func NewControllerUser(r *gin.Engine, db interface{}) _coreDomainService.ControllerInterface {
-	return &controllerUser{
-		r,
-		db.(*sql.DB),
+func NewUserController(config *_configCore.Config) _coreDomainService.ControllerInterface {
+	uc := &userController{
+		config: config,
 	}
-}
-
-func (c controllerUser) ControllerHttpRoutes() {
-	users := *c.r.Group("/users")
+	users := config.GetEngine().Group("/users")
 	{
-		users.GET("", c.getUser)
-		users.POST("", c.addUser)
+		users.GET("", uc.getUser)
+		users.POST("", uc.addUser)
 	}
+	return uc
 }
 
-func (c controllerUser) getUser(gc *gin.Context) {
+func (c userController) getUser(gc *gin.Context) {
 	gc.JSONP(200, gin.H{
 		"message":"test",
 	})
 }
 
-func (c controllerUser) addUser(gc *gin.Context) {
-	ur := _usersInfrastructureRepository.NewUsersRepository(c.db)
+func (c userController) addUser(gc *gin.Context) {
+	ur := _usersInfrastructureRepository.NewUsersRepository(c.config.GetDB())
 
 	u := new(_usersDomainModel.Users)
 	err := gc.Bind(u)

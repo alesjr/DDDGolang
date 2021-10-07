@@ -17,7 +17,7 @@ type mongoDatabaseAdapter struct {
 	port     string
 	dbName   string
 	context  context.Context
-	client   *mongo.Client
+	db		 *mongo.Client
 }
 
 func NewMongoDatabaseAdapter(u string, p string, h string, po string, dn string, ctx context.Context) _coreDomainService.DatabaseAdapterInterface {
@@ -28,21 +28,13 @@ func NewMongoDatabaseAdapter(u string, p string, h string, po string, dn string,
 		port:     po,
 		dbName:   dn,
 		context:  ctx,
-		client:   nil,
+		db:   	  nil,
 	}
-}
-
-func (m *mongoDatabaseAdapter) GetDSN() string {
-	return fmt.Sprintf("mongodb://%s:%s", m.host, m.port)
-}
-
-func (m *mongoDatabaseAdapter) GetDriveName() string {
-	return "mongo"
 }
 
 func (m *mongoDatabaseAdapter) GetDatabase() interface{} {
 	m.conn()
-	return m.client.Database(m.dbName)
+	return m.db.Database(m.dbName)
 }
 
 func (m *mongoDatabaseAdapter) GetContext() context.Context {
@@ -50,20 +42,20 @@ func (m *mongoDatabaseAdapter) GetContext() context.Context {
 }
 
 func (m *mongoDatabaseAdapter) conn() {
-	if m.client == nil {
+	if m.db == nil {
 		auth := options.Credential{
 			Username: m.username,
 			Password: m.password,
 		}
-		oc := options.Client().ApplyURI(m.GetDSN()).SetAuth(auth)
+		oc := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s", m.host, m.port)).SetAuth(auth)
 		cli, err := mongo.Connect(m.context, oc)
 		if err != nil {
-			log.Fatalln(_coreDomainService.ErrConnectionDB, m.GetDriveName(), err)
+			log.Fatalln(_coreDomainService.ErrConnectionDB, "mongo", err)
 		}
-		m.client = cli
+		m.db = cli
 	}
-	err := m.client.Ping(m.context, nil)
+	err := m.db.Ping(m.context, nil)
 	if err != nil {
-		m.client.Connect(m.context)
+		m.db.Connect(m.context)
 	}
 }

@@ -16,12 +16,10 @@ type DatabaseFactoryInterface interface {
 }
 
 type DatabaseAdapterInterface interface {
-	GetDSN() string
-	GetDriveName() string
 	GetDatabase() interface{}
 	GetContext() context.Context
 }
 
 type ControllerInterface interface {
-	ControllerHttpRoutes()
+
 }

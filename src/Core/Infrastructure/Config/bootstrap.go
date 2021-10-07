@@ -1,22 +1,14 @@
-package core_config
+package config_core
 
 import (
-	"database/sql"
-	"github.com/gin-gonic/gin"
 	_coreDomainModel "ddd_golang/src/Core/Domain/Model"
 	_coreInfrastructureService "ddd_golang/src/Core/Infrastructure/Service"
-	_configUsers "ddd_golang/src/Users/Config"
+	"github.com/gin-gonic/gin"
+	"github.com/go-pg/pg/v10"
 )
 
-var db *sql.DB
-
-func Bootstrap() {
+func Bootstrap() *Config{
 	df := _coreInfrastructureService.NewDatabase(_coreDomainModel.Postgres)
 	db := df.Create()
-
-	r := gin.Default()
-	_configUsers.NewRoutesUsers(r, db)
-
-	r.Run()
+	return newConfig(db.(*pg.DB), gin.Default())
 }
-
